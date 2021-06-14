@@ -23,13 +23,14 @@ A minimal blogging platform
 
 ## Todo
 
-- [] User Dashboard - Profile, Posts, Drafts, Saved
-- [] Add likes and reads to posts
-- [] Recoil for State Management
-- [] Authentication/User Management in the server
-- [] Role Management/Permissions in the server
-- [] Admin Dashboard with user stats and control
-- [] Read restrictions for unlogged/guest users
+- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
+- [ ]  Add likes and reads to posts
+- [ ]  Recoil for State Management
+- [ ]  Authentication/User Management in the server
+- [ ]  Role Management/Permissions in the server
+- [ ]  Admin Dashboard with user stats and control
+- [ ]  Read restrictions for unlogged/guest users
+
 
 
 ## Contributing
