@@ -3,6 +3,8 @@ const { secureRoute } = require("../auth");
 const {
   createUser,
   authenticateUser,
+  refreshUserAccess,
+  revokeUserAccess,
   getUser,
   accountManagement,
   updateUser,
@@ -11,9 +13,13 @@ const {
 
 const router = express.Router();
 
-router.post("/signup", createUser);
+router.post("/auth/signup", createUser);
 
-router.post("/signin", authenticateUser);
+router.post("/auth/signin", authenticateUser);
+
+router.post("/auth/refresh", secureRoute, refreshUserAccess);
+
+router.delete("/auth/signout", secureRoute, revokeUserAccess);
 
 router.post("/account/:type", accountManagement);
 
