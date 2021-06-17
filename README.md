@@ -23,9 +23,9 @@ A minimal blogging platform
 
 ## Todo
 
-- [ ]  Recoil for State Management
-- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
+- [X]  Recoil for State Management
 - [ ]  Authentication/User Management in the server
+- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
 - [ ]  Role Management/Permissions in the server
 - [ ]  Admin Dashboard with user stats and control
 - [ ]  Add likes, reads, views to posts
