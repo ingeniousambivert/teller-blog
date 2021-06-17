@@ -21,10 +21,12 @@ export const isAuthenticated = selector({
     key: "isAuthenticated",
     get: ({ get }) => {
         const auth = get(userAuth);
-        const { token, id } = auth;
+        const { accessToken, refreshToken, id } = auth;
         if (
-            token !== null &&
-            typeof token !== "undefined" &&
+            accessToken !== null &&
+            typeof accessToken !== "undefined" &&
+            refreshToken !== null &&
+            typeof refreshToken !== "undefined" &&
             id !== null &&
             typeof id !== "undefined"
         ) {
