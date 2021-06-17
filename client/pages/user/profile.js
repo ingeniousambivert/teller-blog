@@ -3,7 +3,7 @@ import { Loader, Jumbotron } from "../../components";
 import { PrivateRoute } from "../../routes";
 import { useRecoilState } from "recoil";
 import { userAuth, userData } from "../../state/user";
-import { getUser } from "../../state/user/thunks";
+import { getUser, revokeUserAccess } from "../../state/user/thunks";
 
 function Profile() {
     const [auth, setAuth] = useRecoilState(userAuth);
@@ -11,10 +11,11 @@ function Profile() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const signOut = () => {
+    const signOut = async () => {
         setAuth({});
         setData({});
         setError(null);
+        await revokeUserAccess();
     };
     const getData = async () => {
         setLoading(true);

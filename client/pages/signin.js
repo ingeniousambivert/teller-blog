@@ -15,7 +15,11 @@ function SignIn() {
         const response = await authenticateUser(data);
 
         if (response.status === 200) {
-            setUserAuth({ token: response.data.token, id: response.data._id });
+            setUserAuth({
+                accessToken: response.data.accessToken,
+                refreshToken: response.data.refreshToken,
+                id: response.data.id
+            });
         } else {
             const errorMessage = response?.data?.error;
             errorAlert(`Error : ${errorMessage}`, "topRight");
