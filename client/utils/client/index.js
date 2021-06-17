@@ -2,15 +2,15 @@ const basicHeaders = { Accept: "application/json", "Content-Type": "application/
 
 export const getAuthHeaders = () => {
     const storedState = JSON.parse(window.localStorage.getItem("teller-blog"));
-    const accessToken = storedState?.userAuth?.token;
+    const accessToken = storedState?.userAuth?.accessToken;
     const authHeaders = { Authorization: `Bearer ${accessToken}` };
     return authHeaders;
 };
 
-export const getAccessToken = () => {
+export const getRefreshToken = () => {
     const storedState = window.localStorage.getItem("teller-blog");
-    const accessToken = storedState?.userAuth?.token;
-    return accessToken;
+    const refreshToken = storedState?.userAuth?.refreshToken;
+    return refreshToken;
 };
 
 const client = {
