@@ -4,15 +4,17 @@ import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
 import { SelectorIcon } from "@heroicons/react/solid";
 import { Dropdown } from "../../components";
 import { isAuthenticated, userData, userAuth } from "../../state/user";
+import { revokeUserAccess } from "../../state/user/thunks";
 
 function Header() {
     const isUserAuthenticated = useRecoilValue(isAuthenticated);
     const [user, setUser] = useRecoilState(userData);
     const setAuth = useSetRecoilState(userAuth);
 
-    const signOut = () => {
+    const signOut = async () => {
         setAuth({});
         setUser({});
+        await revokeUserAccess();
     };
 
     const renderNav = (isAuthenticated) => {
