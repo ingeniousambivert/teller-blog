@@ -1,8 +1,15 @@
 const crypto = require("crypto");
 const mailer = require("nodemailer");
 const { UserModel, TokenModel } = require("../models/users");
-const { generateToken, isValidPassword, decodeToken } = require("../auth");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  isValidPassword,
+  verifyAccessToken,
+  verifyRefreshToken,
+} = require("../auth");
 const { gmailUsername, gmailPassword, clientUrl } = require("../config");
+const client = require("../config/redis");
 const { createVerifyMail } = require("../utils");
 
 async function createUser(req, res) {
@@ -58,9 +65,11 @@ async function authenticateUser(req, res) {
     const user = await UserModel.findOne({ email });
     if (user) {
       if (await isValidPassword(password, user)) {
-        const token = generateToken(user);
         const { _id } = user;
-        return res.status(200).json({ token, _id });
+        const accessToken = await generateAccessToken(_id);
+        const refreshToken = await generateRefreshToken(_id);
+
+        return res.status(200).json({ accessToken, refreshToken, id: _id });
       } else {
         return res.status(401).json({ error: "Password is invalid" });
       }
@@ -73,10 +82,53 @@ async function authenticateUser(req, res) {
   }
 }
 
+async function refreshUserAccess(req, res) {
+  const { refreshToken } = req.body;
+  try {
+    const { isTokenValid, id } = await verifyRefreshToken(refreshToken);
+    if (!isTokenValid) {
+      return res.status(403).json({ error: "Access denied" });
+    } else {
+      const accessToken = await generateAccessToken(id);
+      const newRefreshToken = await generateRefreshToken(id);
+      return res
+        .status(200)
+        .json({ accessToken, refreshToken: newRefreshToken, id });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+async function revokeUserAccess(req, res) {
+  const { refreshToken } = req.body;
+  try {
+    const { isTokenValid, id } = await verifyRefreshToken(refreshToken);
+    if (!isTokenValid) {
+      return res.status(403).json({ error: "Access denied" });
+    } else {
+      client.del(id, (err, val) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+        return res.sendStatus(204);
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function getUser(req, res) {
   const { id } = req.params;
   try {
-    if (id !== decodeToken(req.headers.authorization.split(" ")[1])["sub"]) {
+    const isTokenValid = verifyAccessToken(
+      id,
+      req.headers.authorization.split(" ")[1]
+    );
+    if (!isTokenValid) {
       return res.status(403).json({ error: "Access denied" });
     } else {
       const user = await UserModel.findById(id, { password: 0 });
@@ -95,7 +147,11 @@ async function getUser(req, res) {
 async function updateUser(req, res) {
   const { id } = req.params;
   try {
-    if (id !== decodeToken(req.headers.authorization.split(" ")[1])["sub"]) {
+    const isTokenValid = verifyAccessToken(
+      id,
+      req.headers.authorization.split(" ")[1]
+    );
+    if (!isTokenValid) {
       return res.status(403).json({ error: "Access denied" });
     } else {
       const user = await UserModel.findById(id);
@@ -117,7 +173,11 @@ async function updateUser(req, res) {
 async function deleteUser(req, res) {
   const { id } = req.params;
   try {
-    if (id !== decodeToken(req.headers.authorization.split(" ")[1])["sub"]) {
+    const isTokenValid = verifyAccessToken(
+      id,
+      req.headers.authorization.split(" ")[1]
+    );
+    if (!isTokenValid) {
       return res.status(403).json({ error: "Access denied" });
     } else {
       const user = await UserModel.findById(id);
@@ -239,6 +299,8 @@ async function accountManagement(req, res) {
 module.exports = {
   createUser,
   authenticateUser,
+  refreshUserAccess,
+  revokeUserAccess,
   getUser,
   updateUser,
   deleteUser,
