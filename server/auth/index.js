@@ -4,7 +4,7 @@ const JWT = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
-const { UserModel } = require("../models/users");
+const UserModel = require("../models/users");
 const { accessSecret, refreshSecret } = require("../config");
 const client = require("../config/redis");
 
@@ -79,8 +79,8 @@ const generateRefreshToken = (userId) => {
   });
 };
 
-const isValidPassword = async function (password, user) {
-  return await bcrypt.compare(password, user.password);
+const isValidPassword = async function (password, userPassword) {
+  return await bcrypt.compare(password, userPassword);
 };
 
 const verifyAccessToken = (id, token) => {
