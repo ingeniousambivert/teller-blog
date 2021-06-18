@@ -6,9 +6,11 @@ const {
   refreshUserAccess,
   revokeUserAccess,
   getUser,
-  accountManagement,
   updateUser,
+  updateEmail,
+  updatePassword,
   deleteUser,
+  accountManagement,
 } = require("../controllers/users");
 
 const router = express.Router();
@@ -25,7 +27,11 @@ router.post("/account/:type", accountManagement);
 
 router.get("/:id", secureRoute, getUser);
 
-router.patch("/update/:id", secureRoute, updateUser);
+router.patch("/update/data/:id", secureRoute, updateUser);
+
+router.patch("/update/email/:id", secureRoute, updateEmail);
+
+router.patch("/update/password/:id", secureRoute, updatePassword);
 
 router.delete("/delete/:id", secureRoute, deleteUser);
 
