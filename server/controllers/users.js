@@ -1,6 +1,6 @@
 const crypto = require("crypto");
-const mailer = require("nodemailer");
-const { UserModel, TokenModel } = require("../models/users");
+const bcrypt = require("bcrypt");
+const UserModel = require("../models/users");
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -8,9 +8,15 @@ const {
   verifyAccessToken,
   verifyRefreshToken,
 } = require("../auth");
-const { gmailUsername, gmailPassword, clientUrl } = require("../config");
+const { clientUrl } = require("../config");
 const client = require("../config/redis");
-const { createVerifyMail } = require("../utils");
+const {
+  createVerifyMail,
+  createForgotPasswordMail,
+  createPasswordResetMail,
+  mailTransporter,
+  getIncrementDate,
+} = require("../utils");
 
 async function createUser(req, res) {
   const { firstname, lastname, email, password } = req.body;
@@ -20,36 +26,35 @@ async function createUser(req, res) {
     if (foundUser) {
       return res.status(409).json({ error: "Email is already in use" });
     }
-    const newUser = new UserModel({ firstname, lastname, email, password });
-    await newUser.save((error) => {
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
+    const verifyExpires = getIncrementDate(24);
+
+    const newUser = new UserModel({
+      firstname,
+      lastname,
+      email,
+      password,
+      verifyToken: verifyTokenHash,
+      verifyExpires,
+    });
+    await newUser.save(async (error) => {
       if (error) {
         return res.status(500).json({ error: error.message });
       }
-      const token = new TokenModel({
-        _userId: newUser._id,
-        token: crypto.randomBytes(16).toString("hex"),
-      });
 
-      token.save(function (error) {
-        if (error) {
-          return res.status(500).json({ error: error.message });
+      const mailOptions = createVerifyMail(
+        newUser.email,
+        newUser._id,
+        verifyToken,
+        clientUrl
+      );
+      mailTransporter.sendMail(mailOptions, function (err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
         }
-
-        const transporter = mailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: gmailUsername,
-            pass: gmailPassword,
-          },
-        });
-        const mailOptions = createVerifyMail(email, token.token, clientUrl);
-        transporter.sendMail(mailOptions, function (err) {
-          if (err) {
-            return res.status(500).json({ error: err.message });
-          }
-          res.status(201).json({
-            message: `Created User and sent verification email to ${newUser.email}`,
-          });
+        res.status(201).json({
+          message: `Created User and sent verification email to ${newUser.email}`,
         });
       });
     });
@@ -64,7 +69,7 @@ async function authenticateUser(req, res) {
   try {
     const user = await UserModel.findOne({ email });
     if (user) {
-      if (await isValidPassword(password, user)) {
+      if (await isValidPassword(password, user.password)) {
         const { _id } = user;
         const accessToken = await generateAccessToken(_id);
         const refreshToken = await generateRefreshToken(_id);
@@ -107,7 +112,7 @@ async function revokeUserAccess(req, res) {
     if (!isTokenValid) {
       return res.status(403).json({ error: "Access denied" });
     } else {
-      client.del(id, (err, val) => {
+      client.DEL(id, (err, val) => {
         if (err) {
           console.log(err);
           return res.status(500).json({ error: "Internal Server Error" });
@@ -196,35 +201,43 @@ async function deleteUser(req, res) {
 
 async function accountManagement(req, res) {
   const { type } = req.params;
-  const { token, email } = req.body;
+  const { token, userId } = req.body;
 
   try {
-    switch (type.toString()) {
+    switch (type) {
       case "verify-user":
         try {
-          const verifyToken = await TokenModel.findOne({ token });
-          if (!verifyToken)
-            return res
-              .status(400)
-              .json({ error: "Token not found or token expired" });
-          else {
-            const user = await UserModel.findOne({
-              _id: verifyToken._userId,
-              email,
-            });
-            if (user) {
-              user.isVerified = true;
-              user.save(function (err) {
-                if (err) {
-                  return res.status(404).json({ error: "User not found" });
-                }
-                res
+          const user = await UserModel.findById(userId);
+          if (user) {
+            if (user.verifyToken && user.verifyExpires) {
+              const isValid = await bcrypt.compare(token, user.verifyToken);
+              if (!isValid) {
+                return res
+                  .status(404)
+                  .json({ error: "Invalid or expired token" });
+              } else {
+                //check expires time
+                await UserModel.updateOne(
+                  { _id: userId },
+                  {
+                    $set: {
+                      isVerified: true,
+                      verifyToken: null,
+                      verifyExpires: null,
+                    },
+                  }
+                );
+                return res
                   .status(200)
                   .json({ message: "User has been succesfully verified" });
-              });
+              }
             } else {
-              return res.status(404).json({ error: "User not found" });
+              return res
+                .status(404)
+                .json({ error: "Invalid or expired token" });
             }
+          } else {
+            return res.status(404).json({ error: "User not found" });
           }
         } catch (error) {
           console.log(error);
@@ -232,45 +245,35 @@ async function accountManagement(req, res) {
         }
         break;
 
-      case "resend-verify-user":
+      case "resend-verify":
         try {
-          const user = await User.findOne({ email });
+          const user = await UserModel.findById(userId);
           if (user) {
             if (user.isVerified) {
               return res
                 .status(400)
                 .json({ error: "User is already verified" });
             } else {
-              const token = new TokenModel({
-                _userId: user._id,
-                token: crypto.randomBytes(16).toString("hex"),
-              });
+              const verifyToken = crypto.randomBytes(32).toString("hex");
+              const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
+              const verifyExpires = getIncrementDate(24);
+              await UserModel.updateOne(
+                { _id: userId },
+                { $set: { verifyToken: verifyTokenHash, verifyExpires } }
+              );
 
-              await token.save(function (error) {
-                if (error) {
-                  return res.status(500).json({ error: error.message });
+              const mailOptions = createVerifyMail(
+                user.email,
+                userId,
+                verifyToken,
+                clientUrl
+              );
+              mailTransporter.sendMail(mailOptions, function (err) {
+                if (err) {
+                  return res.status(500).json({ error: err.message });
                 }
-
-                const transporter = mailer.createTransport({
-                  service: "gmail",
-                  auth: {
-                    user: gmailUsername,
-                    pass: gmailPassword,
-                  },
-                });
-
-                const mailOptions = createVerifyMail(
-                  email,
-                  token.token,
-                  clientUrl
-                );
-                transporter.sendMail(mailOptions, function (err) {
-                  if (err) {
-                    return res.status(500).json({ error: err.message });
-                  }
-                  res.status(201).json({
-                    message: `Resent verification email to ${user.email}`,
-                  });
+                res.status(201).json({
+                  message: `Resent verification email to ${user.email}`,
                 });
               });
             }
@@ -283,7 +286,89 @@ async function accountManagement(req, res) {
         }
         break;
 
+      case "forgot-password":
+        try {
+          const user = await UserModel.findById(userId);
+          if (user) {
+            const resetToken = crypto.randomBytes(32).toString("hex");
+            const resetTokenHash = await bcrypt.hash(resetToken, 10);
+            const resetExpires = getIncrementDate(6);
+
+            await UserModel.updateOne(
+              { _id: userId },
+              { $set: { resetToken: resetTokenHash, resetExpires } }
+            );
+
+            const mailOptions = createForgotPasswordMail(
+              user.email,
+              userId,
+              resetToken,
+              clientUrl
+            );
+            mailTransporter.sendMail(mailOptions, function (err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              res.status(201).json({
+                message: `Sent a reset password link to ${user.email}`,
+              });
+            });
+          } else {
+            return res.status(404).json({ error: "User not found" });
+          }
+        } catch (error) {
+          console.log(error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+        break;
+
       case "reset-password":
+        const { password } = req.body;
+        try {
+          const user = await UserModel.findById(userId);
+          if (user) {
+            if (user.resetToken && user.resetExpires) {
+              const isValid = await bcrypt.compare(token, user.resetToken);
+              if (!isValid) {
+                return res
+                  .status(404)
+                  .json({ error: "Invalid or expired token" });
+              } else {
+                //check expires time
+                const passwordHash = await bcrypt.hash(password, 10);
+                await UserModel.updateOne(
+                  { _id: userId },
+                  {
+                    $set: {
+                      password: passwordHash,
+                      resetToken: null,
+                      resetExpires: null,
+                    },
+                  },
+                  { new: true }
+                );
+                const mailOptions = createPasswordResetMail(user.email);
+                mailTransporter.sendMail(mailOptions, async function (err) {
+                  if (err) {
+                    return res.status(500).json({ error: err.message });
+                  }
+                  return res.status(200).json({
+                    message: "Password Reset Successfully",
+                  });
+                });
+              }
+            } else {
+              return res
+                .status(404)
+                .json({ error: "Invalid or expired token" });
+            }
+          } else {
+            return res.status(404).json({ error: "User not found" });
+          }
+        } catch (error) {
+          console.log(error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
         break;
 
       default:
