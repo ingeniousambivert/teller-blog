@@ -23,13 +23,17 @@ A minimal blogging platform
 
 ## Todo
 
-- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
-- [ ]  Add likes and reads to posts
-- [ ]  Recoil for State Management
+- [X]  Recoil for State Management
 - [ ]  Authentication/User Management in the server
+- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
 - [ ]  Role Management/Permissions in the server
 - [ ]  Admin Dashboard with user stats and control
+- [ ]  Add likes, reads, views to posts
 - [ ]  Read restrictions for unlogged/guest users
+- [ ]  Popular and Recent Post segregation in Feed
+- [ ]  Move to PostgreSQL
+- [ ]  Move to FeathersJS in the server 
+- [ ]  Move to `tags` with many to many relations 
 
 
 

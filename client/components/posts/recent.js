@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { ArrowSmRightIcon } from "@heroicons/react/solid";
 
 function RecentLarge() {
@@ -28,10 +29,12 @@ function RecentLarge() {
 
                         <p className="mt-2 text-sm text-gray-500">May 20, 2021</p>
                         <a className="text-indigo-500" href="/">
-                            <small className="flex flex-row mt-2">
-                                <span> Read More</span>
-                                <ArrowSmRightIcon className="h-5 w-5 " />
-                            </small>
+                            <Link href="/post/23">
+                                <small className="flex flex-row mt-2">
+                                    <span> Read More</span>
+                                    <ArrowSmRightIcon className="h-5 w-5 " />
+                                </small>
+                            </Link>
                         </a>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 import Head from "next/head";
-
+import PropTypes from "prop-types";
 const Meta = ({ title, keywords, description }) => {
     return (
         <Head>
@@ -14,9 +14,14 @@ const Meta = ({ title, keywords, description }) => {
 };
 
 Meta.defaultProps = {
-    title: "Teller",
+    title: "TELLER Blog",
     keywords: "blog, blogger, blogs, blogging",
     description: "Blogging site"
+};
+Meta.propTypes = {
+    title: PropTypes.string,
+    keywords: PropTypes.string,
+    description: PropTypes.string
 };
 
 export default Meta;

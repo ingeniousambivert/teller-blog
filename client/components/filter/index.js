@@ -34,8 +34,9 @@ function Categories() {
         <div className="px-5">
             <nav className="flex flex-wrap justify-between items-center my-12">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-bold">BLOG</h1>
+                    <h1 className="text-2xl font-bold">BLOG</h1>
                 </div>
+
                 <div className="hidden lg:inline-block">
                     <div className="flex flex-row space-x-2">
                         {categories.map((category) => {
@@ -49,7 +50,7 @@ function Categories() {
                         })}
                         <div>
                             <input
-                                className="text-sm px-5 py-1 border-2 border-gray-200 rounded-2xl shadow-sm placeholder-gray-400  text-black focus:outline-none focus:ring-blue-600 focus:border-blue-600 focus:z-10"
+                                className="text-sm px-5 py-1 border-2 border-gray-300 rounded-2xl shadow-sm placeholder-gray-400  text-black focus:outline-none focus:ring-blue-600 focus:border-blue-600 focus:z-10"
                                 placeholder="Search"
                             />
                         </div>
@@ -60,9 +61,9 @@ function Categories() {
                         {({ open }) => (
                             <Fragment>
                                 <div className="mt-1 relative">
-                                    <Listbox.Button className="rounded-3xl relative w-24 bg-white border border-gray-300 shadow-sm pl-2 pr-10 py-1.5  text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 sm:text-sm">
+                                    <Listbox.Button className="rounded-3xl relative w-24 border-2 border-gray-200 text-gray-500 shadow-sm bg-gray-200 pl-2 pr-10 py-1.5 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 sm:text-sm">
                                         <span className="flex items-center">
-                                            <span className="ml-2 block truncate text-sm">
+                                            <span className="ml-2 block truncate w-16 text-sm">
                                                 {selected.name}
                                             </span>
                                         </span>
@@ -130,15 +131,15 @@ function Categories() {
                                         </Listbox.Options>
                                     </Transition>
                                 </div>
-                                <div className="mt-1">
-                                    <input
-                                        className="text-sm pl-3 py-1.5 shadow-sm bg-white border border-gray-300 rounded-3xl placeholder-gray-600  text-black focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:z-10"
-                                        placeholder="Search"
-                                    />
-                                </div>
                             </Fragment>
                         )}
                     </Listbox>
+                    <div className="mt-1">
+                        <input
+                            className="text-sm pl-3 py-1.5 shadow-sm bg-white border-2 border-gray-300 rounded-3xl placeholder-gray-400  text-black focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 focus:z-10"
+                            placeholder="Search"
+                        />
+                    </div>
                 </div>
             </nav>
         </div>
