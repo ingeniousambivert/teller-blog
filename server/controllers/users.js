@@ -42,7 +42,6 @@ async function createUser(req, res) {
       if (error) {
         return res.status(500).json({ error: error.message });
       }
-
       const mailOptions = createVerifyMail(
         newUser.email,
         newUser._id,
@@ -138,6 +137,8 @@ async function getUser(req, res) {
     } else {
       const user = await UserModel.findById(id, { password: 0 });
       if (user) {
+        console.log(typeof user.verifyExpires);
+        console.log(user.verifyExpires);
         return res.status(200).json(user);
       } else {
         return res.status(404).json({ error: "User not found" });
@@ -212,29 +213,30 @@ async function accountManagement(req, res) {
             if (user.verifyToken && user.verifyExpires) {
               const isValid = await bcrypt.compare(token, user.verifyToken);
               if (!isValid) {
-                return res
-                  .status(404)
-                  .json({ error: "Invalid or expired token" });
+                return res.status(400).json({ error: "Invalid token" });
               } else {
-                //check expires time
-                await UserModel.updateOne(
-                  { _id: userId },
-                  {
-                    $set: {
-                      isVerified: true,
-                      verifyToken: null,
-                      verifyExpires: null,
-                    },
-                  }
-                );
-                return res
-                  .status(200)
-                  .json({ message: "User has been succesfully verified" });
+                const now = Date.now();
+                const diff = user.verifyExpires - now;
+                if (diff > 0) {
+                  await UserModel.updateOne(
+                    { _id: userId },
+                    {
+                      $set: {
+                        isVerified: true,
+                        verifyToken: null,
+                        verifyExpires: null,
+                      },
+                    }
+                  );
+                  return res
+                    .status(200)
+                    .json({ message: "User has been succesfully verified" });
+                } else {
+                  return res.status(400).json({ error: "Expired token" });
+                }
               }
             } else {
-              return res
-                .status(404)
-                .json({ error: "Invalid or expired token" });
+              return res.status(400).json({ error: "Invalid token" });
             }
           } else {
             return res.status(404).json({ error: "User not found" });
@@ -272,7 +274,7 @@ async function accountManagement(req, res) {
                 if (err) {
                   return res.status(500).json({ error: err.message });
                 }
-                res.status(201).json({
+                res.status(200).json({
                   message: `Resent verification email to ${user.email}`,
                 });
               });
@@ -309,7 +311,7 @@ async function accountManagement(req, res) {
               if (err) {
                 return res.status(500).json({ error: err.message });
               }
-              res.status(201).json({
+              res.status(200).json({
                 message: `Sent a reset password link to ${user.email}`,
               });
             });
@@ -330,37 +332,38 @@ async function accountManagement(req, res) {
             if (user.resetToken && user.resetExpires) {
               const isValid = await bcrypt.compare(token, user.resetToken);
               if (!isValid) {
-                return res
-                  .status(404)
-                  .json({ error: "Invalid or expired token" });
+                return res.status(400).json({ error: "Invalid token" });
               } else {
-                //check expires time
-                const passwordHash = await bcrypt.hash(password, 10);
-                await UserModel.updateOne(
-                  { _id: userId },
-                  {
-                    $set: {
-                      password: passwordHash,
-                      resetToken: null,
-                      resetExpires: null,
+                const now = Date.now();
+                const diff = user.resetExpires - now;
+                if (diff > 0) {
+                  const passwordHash = await bcrypt.hash(password, 10);
+                  await UserModel.updateOne(
+                    { _id: userId },
+                    {
+                      $set: {
+                        password: passwordHash,
+                        resetToken: null,
+                        resetExpires: null,
+                      },
                     },
-                  },
-                  { new: true }
-                );
-                const mailOptions = createPasswordResetMail(user.email);
-                mailTransporter.sendMail(mailOptions, async function (err) {
-                  if (err) {
-                    return res.status(500).json({ error: err.message });
-                  }
-                  return res.status(200).json({
-                    message: "Password Reset Successfully",
+                    { new: true }
+                  );
+                  const mailOptions = createPasswordResetMail(user.email);
+                  mailTransporter.sendMail(mailOptions, async function (err) {
+                    if (err) {
+                      return res.status(500).json({ error: err.message });
+                    }
+                    return res.status(200).json({
+                      message: "Password Reset Successfully",
+                    });
                   });
-                });
+                } else {
+                  return res.status(400).json({ error: "Expired token" });
+                }
               }
             } else {
-              return res
-                .status(404)
-                .json({ error: "Invalid or expired token" });
+              return res.status(400).json({ error: "Invalid token" });
             }
           } else {
             return res.status(404).json({ error: "User not found" });
