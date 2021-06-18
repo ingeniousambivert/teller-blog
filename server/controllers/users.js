@@ -150,7 +150,7 @@ async function getUser(req, res) {
   }
 }
 
-async function updateUser(req, res) {
+async function updateData(req, res) {
   const { id } = req.params;
   const data = req.body;
   try {
@@ -292,7 +292,9 @@ async function deleteUser(req, res) {
         const user = await UserModel.findById(id);
         if (user) {
           await UserModel.findByIdAndDelete(id);
-          return res.status(200).json("Deleted User");
+          return res.status(200).json({
+            message: "Successfully deleted user",
+          });
         } else {
           return res.status(404).json({ error: "User not found" });
         }
@@ -507,7 +509,7 @@ module.exports = {
   refreshUserAccess,
   revokeUserAccess,
   getUser,
-  updateUser,
+  updateData,
   updateEmail,
   updatePassword,
   deleteUser,
