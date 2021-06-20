@@ -19,6 +19,7 @@ const UserSchema = new Schema(
       unique: true,
     },
     password: { type: String, required: true },
+    profile: { type: Object },
     isActive: { type: Boolean, default: true },
     permissions: { type: Array, default: ["user"] },
     isVerified: { type: Boolean, default: false },
