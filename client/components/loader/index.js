@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 
 const Loader = ({ color, fullHeight }) => {
-    let circleCommonClasses = `h-4 md:w-4 border-4 border-${color} rounded-full`;
+    let circleCommonClasses = `h-4 md:w-4 bg-${color} rounded-full`;
     return (
         <div
             className={
