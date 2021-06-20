@@ -23,7 +23,7 @@ function UpdateData(props) {
 
     const onSubmit = async (data) => {
         const { firstname, lastname, bio } = data;
-        await updateUserData({ firstname, lastname, bio });
+        await updateUserData({ firstname, lastname, "profile.bio": bio });
         hideEditView();
     };
 

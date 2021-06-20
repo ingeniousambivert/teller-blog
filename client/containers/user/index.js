@@ -78,8 +78,7 @@ function ProfileContainer(props) {
 
     const updateUserData = async (data) => {
         setLoading(true);
-        const { firstname, lastname, bio } = data;
-        await updateData(user?._id, { firstname, lastname, "profile.bio": bio });
+        await updateData(user?._id, data);
         await getData();
         setLoading(false);
     };
