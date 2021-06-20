@@ -19,7 +19,7 @@ const {
 } = require("../utils");
 
 async function createUser(req, res) {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password, profile } = req.body;
 
   try {
     const foundUser = await UserModel.findOne({ email });
@@ -35,6 +35,7 @@ async function createUser(req, res) {
       lastname,
       email,
       password,
+      profile,
       verifyToken: verifyTokenHash,
       verifyExpires,
     });
@@ -53,7 +54,7 @@ async function createUser(req, res) {
           return res.status(500).json({ error: err.message });
         }
         res.status(201).json({
-          message: `Created User and sent verification email to ${newUser.email}`,
+          message: `Created User with ID: ${newUser._id} and sent verification email to ${newUser.email}`,
         });
       });
     });
@@ -137,8 +138,6 @@ async function getUser(req, res) {
     } else {
       const user = await UserModel.findById(id, { password: 0 });
       if (user) {
-        console.log(typeof user.verifyExpires);
-        console.log(user.verifyExpires);
         return res.status(200).json(user);
       } else {
         return res.status(404).json({ error: "User not found" });
@@ -168,9 +167,16 @@ async function updateData(req, res) {
             error: "Cannot update email or password via this endpoint",
           });
         } else {
-          const updatedUser = await UserModel.findByIdAndUpdate(id, data, {
-            new: true,
-          });
+          const updatedUser = await UserModel.findOneAndUpdate(
+            { _id: id },
+            {
+              $set: data,
+            },
+            {
+              new: true,
+            }
+          );
+
           return res.status(200).json(updatedUser);
         }
       } else {
@@ -185,9 +191,9 @@ async function updateData(req, res) {
 
 async function updateEmail(req, res) {
   const { id } = req.params;
-  const { email } = req.body;
+  const { email, password } = req.body;
   try {
-    if (email) {
+    if (email && password) {
       const isTokenValid = verifyAccessToken(
         id,
         req.headers.authorization.split(" ")[1]
@@ -197,42 +203,46 @@ async function updateEmail(req, res) {
       } else {
         const user = await UserModel.findById(id);
         if (user) {
-          const verifyToken = crypto.randomBytes(32).toString("hex");
-          const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
-          const verifyExpires = getIncrementDate(24);
-          const updatedUser = await UserModel.findByIdAndUpdate(
-            id,
-            {
-              email,
-              isVerified: false,
-              verifyToken: verifyTokenHash,
-              verifyExpires,
-            },
-            {
-              new: true,
-            }
-          );
-          const mailOptions = createVerifyMail(
-            updatedUser.email,
-            id,
-            verifyToken,
-            clientUrl
-          );
-          mailTransporter.sendMail(mailOptions, function (err) {
-            if (err) {
-              return res.status(500).json({ error: err.message });
-            }
-            return res.status(200).json({
-              message: `Sent verification email to ${updatedUser.email}`,
-              updatedUser,
+          if (await isValidPassword(password, user.password)) {
+            const verifyToken = crypto.randomBytes(32).toString("hex");
+            const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
+            const verifyExpires = getIncrementDate(24);
+            const updatedUser = await UserModel.findByIdAndUpdate(
+              id,
+              {
+                email,
+                isVerified: false,
+                verifyToken: verifyTokenHash,
+                verifyExpires,
+              },
+              {
+                new: true,
+              }
+            );
+            const mailOptions = createVerifyMail(
+              updatedUser.email,
+              id,
+              verifyToken,
+              clientUrl
+            );
+            mailTransporter.sendMail(mailOptions, function (err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              return res.status(200).json({
+                message: `Sent verification email to ${updatedUser.email}`,
+                updatedUser,
+              });
             });
-          });
+          } else {
+            return res.status(401).json({ error: "Password is invalid" });
+          }
         } else {
           return res.status(404).json({ error: "User not found" });
         }
       }
     } else {
-      res.status(400).json({ error: "Email is required" });
+      res.status(400).json({ error: "Email and password are required" });
     }
   } catch (error) {
     console.log(error);
@@ -242,9 +252,9 @@ async function updateEmail(req, res) {
 
 async function updatePassword(req, res) {
   const { id } = req.params;
-  const { password } = req.body;
+  const { currentPassword, newPassword } = req.body;
   try {
-    if (password) {
+    if (currentPassword && newPassword) {
       const isTokenValid = verifyAccessToken(
         id,
         req.headers.authorization.split(" ")[1]
@@ -254,23 +264,29 @@ async function updatePassword(req, res) {
       } else {
         const user = await UserModel.findById(id);
         if (user) {
-          const passwordHash = await bcrypt.hash(password, 10);
-          await UserModel.findByIdAndUpdate(id, { password: passwordHash });
-          const mailOptions = createPasswordResetMail(user.email, "update");
-          mailTransporter.sendMail(mailOptions, function (err) {
-            if (err) {
-              return res.status(500).json({ error: err.message });
-            }
-          });
-          return res
-            .status(200)
-            .json({ message: "Successfully updated password" });
+          if (await isValidPassword(currentPassword, user.password)) {
+            const passwordHash = await bcrypt.hash(newPassword, 10);
+            await UserModel.findByIdAndUpdate(id, { password: passwordHash });
+            const mailOptions = createPasswordResetMail(user.email, "update");
+            mailTransporter.sendMail(mailOptions, function (err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+            });
+            return res
+              .status(200)
+              .json({ message: "Successfully updated password" });
+          } else {
+            return res.status(401).json({ error: "Password is invalid" });
+          }
         } else {
           return res.status(404).json({ error: "User not found" });
         }
       }
     } else {
-      res.status(400).json({ error: "Password is required" });
+      res
+        .status(400)
+        .json({ error: "Current password and new password are required" });
     }
   } catch (error) {
     console.log(error);
