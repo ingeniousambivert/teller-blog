@@ -1,5 +1,6 @@
-import { RecentLarge, RecentSmall, PopularMedium, PopularSmall } from "../components/posts";
-function Feed() {
+import { RecentLarge, RecentSmall, PopularMedium, PopularSmall } from "../../components/posts";
+
+function FeedContainer() {
     return (
         <div className="container">
             <div className="space-y-5">
@@ -40,4 +41,4 @@ function Feed() {
     );
 }
 
-export default Feed;
+export default FeedContainer;
