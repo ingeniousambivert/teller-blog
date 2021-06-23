@@ -6,6 +6,7 @@ const {
   refreshUserAccess,
   revokeUserAccess,
   getUser,
+  updateFile,
   updateData,
   updateEmail,
   updatePassword,
@@ -28,6 +29,8 @@ router.post("/account/:type", accountManagement);
 router.get("/:id", secureRoute, getUser);
 
 router.patch("/update/data/:id", secureRoute, updateData);
+
+router.patch("/update/file/:id", secureRoute, updateFile);
 
 router.patch("/update/email/:id", secureRoute, updateEmail);
 
