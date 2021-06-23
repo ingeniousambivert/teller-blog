@@ -4,10 +4,24 @@ import { useForm } from "react-hook-form";
 import { Dropdown, Modal } from "../../components";
 import { SelectorIcon } from "@heroicons/react/solid";
 import { UpdateData, UpdateEmail, UpdatePassword } from "./update";
-import { updateData, updateEmail, updatePassword, updateMedia } from "../../state/user/thunks";
+import {
+    updateData,
+    updateEmail,
+    updatePassword,
+    updateMedia,
+    manageAccount
+} from "../../state/user/thunks";
 
 function ShowData(props) {
-    const { user, setEdit, setEditData, setEditEmail, setEditPassword } = props;
+    const {
+        user,
+        loading,
+        resendEmailVerify,
+        setEdit,
+        setEditData,
+        setEditEmail,
+        setEditPassword
+    } = props;
     return (
         <div className="flex flex-col justify-center md:justify-start gap-y-2">
             <div className="flex flex-col justify-center md:justify-start">
@@ -20,11 +34,41 @@ function ShowData(props) {
                     <div className="mt-1 md:text-md text-gray-600 flex flex-col md:flex-row">
                         <span className="text-center md:text-left"> {user?.email} &nbsp;</span>
                         <span className="text-center md:text-left">
-                            {!user?.isVerified && (
-                                <button className="underline text-xs ml-1 hover:text-black focus:outline-none transition duration-300">
-                                    Re-send Verification
-                                </button>
-                            )}
+                            {!user?.isVerified &&
+                                (loading ? (
+                                    <button
+                                        type="button"
+                                        className="text-xs ml-1 focus:outline-none flex flex-row space-x-5">
+                                        <svg
+                                            className="animate-spin -ml-1 mr-3 h-4 w-4 text-black"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24">
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Sending Email
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={async () => {
+                                            await resendEmailVerify({
+                                                userId: user._id
+                                            });
+                                        }}
+                                        className="underline text-xs ml-1 hover:text-black focus:outline-none transition duration-300">
+                                        Re-send Verification
+                                    </button>
+                                ))}
                         </span>
                     </div>
                 </div>
@@ -450,6 +494,11 @@ function ProfileContainer(props) {
         setLoading(false);
         await signOut();
     };
+    const resendEmailVerify = async (data) => {
+        setLoading(true);
+        await manageAccount("resend-verify", data);
+        setLoading(false);
+    };
 
     return (
         <div className="mt-20 max-w-md md:max-w-6xl mx-auto bg-white rounded-xl shadow-md overflow-visible z-0">
@@ -629,6 +678,8 @@ function ProfileContainer(props) {
                         ) : (
                             <ShowData
                                 user={user}
+                                loading={loading}
+                                resendEmailVerify={resendEmailVerify}
                                 setEdit={setEdit}
                                 setEditData={setEditData}
                                 setEditEmail={setEditEmail}
@@ -666,6 +717,8 @@ ProfileContainer.propTypes = {
 };
 ShowData.propTypes = {
     user: PropTypes.object.isRequired,
+    loading: PropTypes.bool.isRequired,
+    resendEmailVerify: PropTypes.func.isRequired,
     setEdit: PropTypes.func.isRequired,
     setEditData: PropTypes.func.isRequired,
     setEditEmail: PropTypes.func.isRequired,
