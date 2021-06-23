@@ -458,7 +458,7 @@ async function accountManagement(req, res) {
   const { token, userId } = req.body;
 
   try {
-    if (token && userId) {
+    if (token || userId) {
       switch (type) {
         case "verify-user":
           try {
@@ -505,7 +505,8 @@ async function accountManagement(req, res) {
           try {
             const user = await UserModel.findById(userId);
             if (user) {
-              if (user.isVerified) {
+              if (user.isVerified === true) {
+                console.log(user.isVerified);
                 return res
                   .status(400)
                   .json({ error: "User is already verified" });
@@ -640,7 +641,7 @@ async function accountManagement(req, res) {
           break;
       }
     } else {
-      res.status(400).json({ error: "Token and User id are required" });
+      res.status(400).json({ error: "Token and/or User id are required" });
     }
   } catch (error) {
     console.log(error);
