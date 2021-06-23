@@ -8,17 +8,22 @@ import { SignUpForm } from "../components";
 
 function SignUp() {
     const setUserAuth = useSetRecoilState(userAuth);
+
     const [loading, setLoading] = useState(false);
 
     const create = async (data) => {
         setLoading(true);
         const response = await createUser(data);
-        console.log(response);
         if (response?.status === 200 || response?.status === 201) {
             const { email, password } = data;
             const auth = await authenticateUser({ email, password });
-            if (auth?.status === 200) {
-                setUserAuth({ token: auth?.data?.token, id: auth?.data?._id });
+
+            if (auth?.status === 200 && auth.data !== null) {
+                setUserAuth({
+                    accessToken: auth.data.accessToken,
+                    refreshToken: auth.data.refreshToken,
+                    id: auth.data.id
+                });
             } else {
                 const errorMessage = auth?.data?.error;
                 errorAlert(`Error : ${errorMessage}`, "topRight");
