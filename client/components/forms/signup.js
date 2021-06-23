@@ -12,7 +12,10 @@ function SignUpForm(props) {
     } = useForm();
 
     const onSubmit = async (data) => {
-        await createUser(data);
+        await createUser({
+            ...data,
+            profile: { bio: "", cover: "", picture: "" }
+        });
     };
 
     return (

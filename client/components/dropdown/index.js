@@ -44,8 +44,8 @@ const useToggle = () => {
 
 const style = {
     menu: `block z-30 absolute top-0 left-0 bg-white float-left py-2 px-0 text-left bg-white rounded-md mt-0.5 mb-0 mx-0 bg-clip-padding shadow-md border-2 border-gray-200`,
-    item: `block w-full py-1 px-8 mb-2 text-sm font-normal clear-both whitespace-nowrap border-0 hover:bg-blue-600 hover:text-white cursor-pointer`,
-    button: `block w-full py-1 px-8 mb-2 text-sm font-normal clear-both whitespace-nowrap border-0 cursor-pointer`
+    item: `block w-full text-center py-1 px-8 mb-2 text-sm font-normal clear-both whitespace-nowrap border-0 hover:text-blue-600 cursor-pointer`,
+    button: `block w-full text-center py-1 px-8 mb-2 text-sm font-normal clear-both whitespace-nowrap border-0 cursor-pointer`
 };
 
 const Dropdown = ({ children }) => {
