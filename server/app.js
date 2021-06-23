@@ -1,4 +1,5 @@
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const logger = require("morgan");
@@ -9,6 +10,12 @@ const postsRouter = require("./routes/posts");
 const categoriesRouter = require("./routes/categories");
 
 const app = express();
+
+app.use(
+  fileUpload({
+    createParentPath: true,
+  })
+);
 
 app.use(logger("dev"));
 app.use(express.json());
