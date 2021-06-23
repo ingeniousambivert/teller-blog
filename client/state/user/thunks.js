@@ -112,6 +112,7 @@ export const updateEmail = async (id, body) => {
         return { status: 500, data: { error: "Internal Server Error" } };
     }
 };
+
 export const updatePassword = async (id, body) => {
     try {
         const authHeaders = getAuthHeaders();
