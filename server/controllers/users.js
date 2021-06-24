@@ -455,10 +455,10 @@ async function deleteUser(req, res) {
 
 async function accountManagement(req, res) {
   const { type } = req.params;
-  const { token, userId } = req.body;
+  const { token, userId, email, password } = req.body;
 
   try {
-    if (token || userId) {
+    if (token || userId || email || password) {
       switch (type) {
         case "verify-user":
           try {
@@ -545,20 +545,20 @@ async function accountManagement(req, res) {
 
         case "forgot-password":
           try {
-            const user = await UserModel.findById(userId);
+            const user = await UserModel.findOne({ email });
             if (user) {
+              const id = user._id;
               const resetToken = crypto.randomBytes(32).toString("hex");
               const resetTokenHash = await bcrypt.hash(resetToken, 10);
               const resetExpires = getIncrementDate(6);
 
-              await UserModel.updateOne(
-                { _id: userId },
-                { $set: { resetToken: resetTokenHash, resetExpires } }
-              );
+              await UserModel.findByIdAndUpdate(id, {
+                $set: { resetToken: resetTokenHash, resetExpires },
+              });
 
               const mailOptions = createForgotPasswordMail(
                 user.email,
-                userId,
+                id,
                 resetToken,
                 clientUrl
               );
@@ -580,7 +580,6 @@ async function accountManagement(req, res) {
           break;
 
         case "reset-password":
-          const { password } = req.body;
           try {
             if (password) {
               const user = await UserModel.findById(userId);
@@ -594,17 +593,13 @@ async function accountManagement(req, res) {
                     const diff = user.resetExpires - now;
                     if (diff > 0) {
                       const passwordHash = await bcrypt.hash(password, 10);
-                      await UserModel.updateOne(
-                        { _id: userId },
-                        {
-                          $set: {
-                            password: passwordHash,
-                            resetToken: null,
-                            resetExpires: null,
-                          },
+                      await UserModel.findByIdAndUpdate(userId, {
+                        $set: {
+                          password: passwordHash,
+                          resetToken: null,
+                          resetExpires: null,
                         },
-                        { new: true }
-                      );
+                      });
                       const mailOptions = createPasswordResetMail(user.email);
                       mailTransporter.sendMail(
                         mailOptions,
