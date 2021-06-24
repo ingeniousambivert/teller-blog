@@ -134,7 +134,7 @@ export const manageAccount = async (type, body) => {
     try {
         const response = await client.post(`/api/users/account/${type}`, body);
         const status = response.status;
-        const data = response.json();
+        const data = await response.json();
         return { status, data };
     } catch (error) {
         console.log(error);
