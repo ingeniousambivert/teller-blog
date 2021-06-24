@@ -123,7 +123,7 @@ function SignUpForm(props) {
                                         type="password"
                                         placeholder="Enter your Password"
                                     />
-                                    {errors.email?.type === "required" && (
+                                    {errors.password?.type === "required" && (
                                         <p className="text-xs italic text-red-500">
                                             Please enter your Password.
                                         </p>
