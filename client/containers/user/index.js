@@ -38,9 +38,9 @@ function ShowData(props) {
                                 (loading ? (
                                     <button
                                         type="button"
-                                        className="text-xs ml-1 focus:outline-none flex flex-row space-x-5">
+                                        className="text-xs ml-1 mt-1 focus:outline-none flex flex-row space-x-5">
                                         <svg
-                                            className="animate-spin -ml-1 mr-3 h-4 w-4 text-black"
+                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-black"
                                             xmlns="http://www.w3.org/2000/svg"
                                             fill="none"
                                             viewBox="0 0 24 24">
@@ -65,7 +65,7 @@ function ShowData(props) {
                                                 userId: user._id
                                             });
                                         }}
-                                        className="underline text-xs ml-1 hover:text-black focus:outline-none transition duration-300">
+                                        className="underline flex flex-row mt-1 text-xs ml-1 hover:text-black focus:outline-none transition duration-300">
                                         Re-send Verification
                                     </button>
                                 ))}
@@ -513,10 +513,10 @@ function ProfileContainer(props) {
                                     alt="Profile Cover"
                                 />
                             </div>
-                            <div className="float-right -mt-8 mr-8 opacity-50 hover:opacity-100 z-999 relative transition duration-300">
+                            <div className="float-right -mt-8 mr-8 z-999 relative transition duration-300">
                                 <Dropdown className="z-50">
                                     <Dropdown.Toggle>
-                                        <button className="bg-white border-white shadow-xl text-black py-1 pl-2.5 pr-1.5 rounded-2xl focus:outline-none text-xs flex flex-row">
+                                        <button className="bg-white border-white shadow-xl text-black py-1 pl-2.5 pr-1.5 rounded-2xl focus:outline-none text-xs flex flex-row opacity-50 hover:opacity-100 focus:opacity-100">
                                             <span className="mr-0.5">Update</span>
                                             <span>
                                                 <SelectorIcon className="h-4 w-3 text-black" />
@@ -575,10 +575,10 @@ function ProfileContainer(props) {
                                             alt="Profile"
                                         />
                                     </div>
-                                    <div className="float-right -mt-8 mr-2 opacity-50 hover:opacity-100 z-999 relative transition duration-300">
+                                    <div className="float-right -mt-8 mr-2 z-999 relative transition duration-300">
                                         <Dropdown className="z-50">
                                             <Dropdown.Toggle>
-                                                <button className="bg-white border-white shadow-xl text-black py-1 pl-2.5 pr-1.5 rounded-2xl focus:outline-none text-xs flex flex-row">
+                                                <button className="bg-white border-white shadow-xl text-black py-1 pl-2.5 pr-1.5 rounded-2xl focus:outline-none text-xs opacity-50 hover:opacity-100 focus:opacity-100 flex flex-row">
                                                     <span className="mr-0.5">Update</span>
                                                     <span>
                                                         <SelectorIcon className="h-4 w-3 text-black" />
