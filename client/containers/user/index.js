@@ -501,14 +501,14 @@ function ProfileContainer(props) {
     };
 
     return (
-        <div className="mt-20 max-w-md md:max-w-6xl mx-auto bg-white rounded-xl shadow-md overflow-visible z-0">
+        <div className="mt-20 max-w-md md:max-w-6xl mx-auto bg-white rounded-xl shadow-md">
             <div className="flex flex-col overflow-visible z-0">
                 <div>
                     {user?.profile?.cover ? (
                         <div className="border-b h-48 md:h-56 w-full">
-                            <div className="z-0 h-48 md:h-56 w-full">
+                            <div className="z-0 h-48 md:h-56 w-full rounded-t-xl">
                                 <img
-                                    className="h-48 md:h-56 w-full object-cover"
+                                    className="h-48 md:h-56 w-full object-cover rounded-t-xl"
                                     src={user?.profile?.cover}
                                     alt="Profile Cover"
                                 />
@@ -549,7 +549,7 @@ function ProfileContainer(props) {
                             </div>
                         </div>
                     ) : (
-                        <div className="h-48 md:h-56 w-full border-b bg-gray-50 flex flex-col justify-center items-center">
+                        <div className="h-48 md:h-56 w-full border-b rounded-t-xl bg-gray-50 flex flex-col justify-center items-center">
                             <div>
                                 <button
                                     onClick={() => {
