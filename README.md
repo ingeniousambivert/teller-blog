@@ -25,7 +25,10 @@ A minimal blogging platform
 
 - [X]  Recoil for State Management
 - [X]  Authentication/User Management in the server
-- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
+- [X]  User Dashboard - Profile
+- [ ]  User Dashboard - Posts
+- [ ]  User Dashboard - Drafts
+- [ ]  Implement Elastic Search in Feed
 - [ ]  Role Management/Permissions in the server
 - [ ]  Admin Dashboard with user stats and control
 - [ ]  Add likes, reads, views to posts
