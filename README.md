@@ -24,7 +24,7 @@
 ## Todo
 
 - [X]  Recoil for State Management
-- [ ]  Move to Strapi
+- [ ]  Move to Strapi for backend
 - [ ]  Admin Dashboard with user stats and control
 - [ ]  Add likes, reads, views to posts
 - [ ]  Read restrictions for guest users
