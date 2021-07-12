@@ -21,18 +21,20 @@ export const isAuthenticated = selector({
     key: "isAuthenticated",
     get: ({ get }) => {
         const auth = get(userAuth);
-        const { accessToken, refreshToken, id } = auth;
-        if (
-            accessToken !== null &&
-            typeof accessToken !== "undefined" &&
-            refreshToken !== null &&
-            typeof refreshToken !== "undefined" &&
-            id !== null &&
-            typeof id !== "undefined"
-        ) {
-            return true;
-        } else {
-            return false;
+        if (auth !== null) {
+            const { accessToken, refreshToken, id } = auth;
+            if (
+                accessToken !== null &&
+                typeof accessToken !== "undefined" &&
+                refreshToken !== null &&
+                typeof refreshToken !== "undefined" &&
+                id !== null &&
+                typeof id !== "undefined"
+            ) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 });

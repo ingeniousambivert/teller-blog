@@ -14,7 +14,7 @@ function SignIn() {
         setLoading(true);
         const response = await authenticateUser(data);
 
-        if (response.status === 200) {
+        if (response.status === 200 && response.data !== null) {
             setUserAuth({
                 accessToken: response.data.accessToken,
                 refreshToken: response.data.refreshToken,

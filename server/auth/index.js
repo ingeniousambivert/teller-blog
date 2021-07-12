@@ -6,7 +6,7 @@ const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const UserModel = require("../models/users");
 const { accessSecret, refreshSecret } = require("../config");
-const client = require("../config/redis");
+const redisClient = require("../config/redis");
 
 passport.use(
   new JWTStrategy(
@@ -61,7 +61,7 @@ const generateRefreshToken = (userId) => {
         console.log(err);
         reject(err);
       }
-      client.SET(
+      redisClient.SET(
         userId.toString(),
         token,
         "EX",
@@ -94,7 +94,7 @@ const verifyRefreshToken = (token) => {
     JWT.verify(token, refreshSecret, (err, payload) => {
       if (err) return resolve({ isTokenValid: false, id: null });
       const userId = payload.sub;
-      client.GET(userId, (err, result) => {
+      redisClient.GET(userId, (err, result) => {
         if (err) {
           console.log(err);
           resolve({ isTokenValid: false, id: null });

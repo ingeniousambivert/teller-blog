@@ -1,5 +1,5 @@
 import { Categories } from "../components";
-import { Feed } from "../containers";
+import { FeedContainer } from "../containers";
 
 export default function Index() {
     return (
@@ -8,7 +8,7 @@ export default function Index() {
                 <Categories />
             </div>
             <div className="flex flex-col items-center justify-center">
-                <Feed />
+                <FeedContainer />
             </div>
         </div>
     );

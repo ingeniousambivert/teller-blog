@@ -9,8 +9,11 @@ const {
   verifyRefreshToken,
 } = require("../auth");
 const { clientUrl } = require("../config");
-const client = require("../config/redis");
+const redisClient = require("../config/redis");
+const cloudinary = require("../utils/client");
 const {
+  deleteDir,
+  createDir,
   createVerifyMail,
   createForgotPasswordMail,
   createPasswordResetMail,
@@ -19,7 +22,7 @@ const {
 } = require("../utils");
 
 async function createUser(req, res) {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password, profile } = req.body;
 
   try {
     const foundUser = await UserModel.findOne({ email });
@@ -35,6 +38,7 @@ async function createUser(req, res) {
       lastname,
       email,
       password,
+      profile,
       verifyToken: verifyTokenHash,
       verifyExpires,
     });
@@ -53,7 +57,7 @@ async function createUser(req, res) {
           return res.status(500).json({ error: err.message });
         }
         res.status(201).json({
-          message: `Created User and sent verification email to ${newUser.email}`,
+          message: `Created User with ID: ${newUser._id} and sent verification email to ${newUser.email}`,
         });
       });
     });
@@ -111,7 +115,7 @@ async function revokeUserAccess(req, res) {
     if (!isTokenValid) {
       return res.status(403).json({ error: "Access denied" });
     } else {
-      client.DEL(id, (err, val) => {
+      redisClient.DEL(id, (err, val) => {
         if (err) {
           console.log(err);
           return res.status(500).json({ error: "Internal Server Error" });
@@ -137,8 +141,6 @@ async function getUser(req, res) {
     } else {
       const user = await UserModel.findById(id, { password: 0 });
       if (user) {
-        console.log(typeof user.verifyExpires);
-        console.log(user.verifyExpires);
         return res.status(200).json(user);
       } else {
         return res.status(404).json({ error: "User not found" });
@@ -168,9 +170,16 @@ async function updateData(req, res) {
             error: "Cannot update email or password via this endpoint",
           });
         } else {
-          const updatedUser = await UserModel.findByIdAndUpdate(id, data, {
-            new: true,
-          });
+          const updatedUser = await UserModel.findOneAndUpdate(
+            { _id: id },
+            {
+              $set: data,
+            },
+            {
+              new: true,
+            }
+          );
+
           return res.status(200).json(updatedUser);
         }
       } else {
@@ -183,11 +192,137 @@ async function updateData(req, res) {
   }
 }
 
+async function updateFile(req, res) {
+  const { id } = req.params;
+  const data = req.body;
+  const path = "./temp/";
+  const dir = "./temp";
+
+  const uploadFile = (picture, folder) => {
+    return new Promise((resolve, reject) => {
+      let uploadedData = {};
+      picture.mv(path + picture.name);
+      cloudinary.v2.uploader.upload(
+        path + picture.name,
+        {
+          folder: folder,
+          use_filename: true,
+          public_id: id,
+        },
+        function (error, result) {
+          if (error) {
+            console.log(error);
+            reject(error);
+          }
+          uploadedData.public_id = result?.public_id;
+          uploadedData.public_url = result?.secure_url;
+          resolve(uploadedData);
+        }
+      );
+    });
+  };
+
+  try {
+    const user = await UserModel.findById(id);
+    if (user) {
+      if (data?.email || data?.password) {
+        return res.status(400).json({
+          error: "Cannot update email or password via this endpoint",
+        });
+      } else {
+        if (!req.files) {
+          res.status(400).json({ error: "Please upload a PNG or JPEG file" });
+        } else {
+          if (req.files.profilePicture) {
+            let profilePicture = req.files.profilePicture;
+            if (
+              profilePicture.mimetype === "image/png" ||
+              profilePicture.mimetype === "image/jpeg"
+            ) {
+              createDir(dir);
+              const data = await uploadFile(profilePicture, "profilePictures");
+              const updatedData = { "profile.picture": data.public_url };
+              if (
+                typeof updatedData["profile.picture"] !== undefined &&
+                updatedData["profile.picture"] !== null
+              ) {
+                const updatedUser = await UserModel.findOneAndUpdate(
+                  { _id: id },
+                  {
+                    $set: updatedData,
+                  },
+                  {
+                    new: true,
+                  }
+                );
+                deleteDir(dir);
+                return res.status(200).json({
+                  message: "File uploaded successfully",
+                  updatedUser,
+                });
+              } else {
+                deleteDir(dir);
+                return res.status(500).json({ error: "Could not upload file" });
+              }
+            } else {
+              res
+                .status(400)
+                .json({ error: "Please upload a valid PNG or JPEG file" });
+            }
+          } else if (req.files.coverPicture) {
+            let coverPicture = req.files.coverPicture;
+            if (
+              coverPicture.mimetype === "image/png" ||
+              coverPicture.mimetype === "image/jpeg"
+            ) {
+              createDir(dir);
+              const data = await uploadFile(coverPicture, "coverPictures");
+              const updatedData = { "profile.cover": data.public_url };
+              if (
+                typeof updatedData["profile.cover"] !== undefined &&
+                updatedData["profile.cover"] !== null
+              ) {
+                const updatedUser = await UserModel.findOneAndUpdate(
+                  { _id: id },
+                  {
+                    $set: updatedData,
+                  },
+                  {
+                    new: true,
+                  }
+                );
+                deleteDir(dir);
+                return res
+                  .status(200)
+                  .json({ message: "File uploaded successfully", updatedUser });
+              } else {
+                deleteDir(dir);
+                return res.status(500).json({ error: "Could not upload file" });
+              }
+            } else {
+              res
+                .status(400)
+                .json({ error: "Please upload a valid PNG or JPEG file" });
+            }
+          } else {
+            res.status(400).json({ error: "Please upload a PNG or JPEG file" });
+          }
+        }
+      }
+    } else {
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function updateEmail(req, res) {
   const { id } = req.params;
-  const { email } = req.body;
+  const { email, password } = req.body;
   try {
-    if (email) {
+    if (email && password) {
       const isTokenValid = verifyAccessToken(
         id,
         req.headers.authorization.split(" ")[1]
@@ -197,42 +332,46 @@ async function updateEmail(req, res) {
       } else {
         const user = await UserModel.findById(id);
         if (user) {
-          const verifyToken = crypto.randomBytes(32).toString("hex");
-          const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
-          const verifyExpires = getIncrementDate(24);
-          const updatedUser = await UserModel.findByIdAndUpdate(
-            id,
-            {
-              email,
-              isVerified: false,
-              verifyToken: verifyTokenHash,
-              verifyExpires,
-            },
-            {
-              new: true,
-            }
-          );
-          const mailOptions = createVerifyMail(
-            updatedUser.email,
-            id,
-            verifyToken,
-            clientUrl
-          );
-          mailTransporter.sendMail(mailOptions, function (err) {
-            if (err) {
-              return res.status(500).json({ error: err.message });
-            }
-            return res.status(200).json({
-              message: `Sent verification email to ${updatedUser.email}`,
-              updatedUser,
+          if (await isValidPassword(password, user.password)) {
+            const verifyToken = crypto.randomBytes(32).toString("hex");
+            const verifyTokenHash = await bcrypt.hash(verifyToken, 10);
+            const verifyExpires = getIncrementDate(24);
+            const updatedUser = await UserModel.findByIdAndUpdate(
+              id,
+              {
+                email,
+                isVerified: false,
+                verifyToken: verifyTokenHash,
+                verifyExpires,
+              },
+              {
+                new: true,
+              }
+            );
+            const mailOptions = createVerifyMail(
+              updatedUser.email,
+              id,
+              verifyToken,
+              clientUrl
+            );
+            mailTransporter.sendMail(mailOptions, function (err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+              return res.status(200).json({
+                message: `Sent verification email to ${updatedUser.email}`,
+                updatedUser,
+              });
             });
-          });
+          } else {
+            return res.status(401).json({ error: "Password is invalid" });
+          }
         } else {
           return res.status(404).json({ error: "User not found" });
         }
       }
     } else {
-      res.status(400).json({ error: "Email is required" });
+      res.status(400).json({ error: "Email and password are required" });
     }
   } catch (error) {
     console.log(error);
@@ -242,9 +381,9 @@ async function updateEmail(req, res) {
 
 async function updatePassword(req, res) {
   const { id } = req.params;
-  const { password } = req.body;
+  const { currentPassword, newPassword } = req.body;
   try {
-    if (password) {
+    if (currentPassword && newPassword) {
       const isTokenValid = verifyAccessToken(
         id,
         req.headers.authorization.split(" ")[1]
@@ -254,23 +393,29 @@ async function updatePassword(req, res) {
       } else {
         const user = await UserModel.findById(id);
         if (user) {
-          const passwordHash = await bcrypt.hash(password, 10);
-          await UserModel.findByIdAndUpdate(id, { password: passwordHash });
-          const mailOptions = createPasswordResetMail(user.email, "update");
-          mailTransporter.sendMail(mailOptions, function (err) {
-            if (err) {
-              return res.status(500).json({ error: err.message });
-            }
-          });
-          return res
-            .status(200)
-            .json({ message: "Successfully updated password" });
+          if (await isValidPassword(currentPassword, user.password)) {
+            const passwordHash = await bcrypt.hash(newPassword, 10);
+            await UserModel.findByIdAndUpdate(id, { password: passwordHash });
+            const mailOptions = createPasswordResetMail(user.email, "update");
+            mailTransporter.sendMail(mailOptions, function (err) {
+              if (err) {
+                return res.status(500).json({ error: err.message });
+              }
+            });
+            return res
+              .status(200)
+              .json({ message: "Successfully updated password" });
+          } else {
+            return res.status(401).json({ error: "Password is invalid" });
+          }
         } else {
           return res.status(404).json({ error: "User not found" });
         }
       }
     } else {
-      res.status(400).json({ error: "Password is required" });
+      res
+        .status(400)
+        .json({ error: "Current password and new password are required" });
     }
   } catch (error) {
     console.log(error);
@@ -310,10 +455,10 @@ async function deleteUser(req, res) {
 
 async function accountManagement(req, res) {
   const { type } = req.params;
-  const { token, userId } = req.body;
+  const { token, userId, email, password } = req.body;
 
   try {
-    if (token && userId) {
+    if (token || userId || email || password) {
       switch (type) {
         case "verify-user":
           try {
@@ -360,7 +505,8 @@ async function accountManagement(req, res) {
           try {
             const user = await UserModel.findById(userId);
             if (user) {
-              if (user.isVerified) {
+              if (user.isVerified === true) {
+                console.log(user.isVerified);
                 return res
                   .status(400)
                   .json({ error: "User is already verified" });
@@ -399,20 +545,20 @@ async function accountManagement(req, res) {
 
         case "forgot-password":
           try {
-            const user = await UserModel.findById(userId);
+            const user = await UserModel.findOne({ email });
             if (user) {
+              const id = user._id;
               const resetToken = crypto.randomBytes(32).toString("hex");
               const resetTokenHash = await bcrypt.hash(resetToken, 10);
               const resetExpires = getIncrementDate(6);
 
-              await UserModel.updateOne(
-                { _id: userId },
-                { $set: { resetToken: resetTokenHash, resetExpires } }
-              );
+              await UserModel.findByIdAndUpdate(id, {
+                $set: { resetToken: resetTokenHash, resetExpires },
+              });
 
               const mailOptions = createForgotPasswordMail(
                 user.email,
-                userId,
+                id,
                 resetToken,
                 clientUrl
               );
@@ -434,7 +580,6 @@ async function accountManagement(req, res) {
           break;
 
         case "reset-password":
-          const { password } = req.body;
           try {
             if (password) {
               const user = await UserModel.findById(userId);
@@ -448,17 +593,13 @@ async function accountManagement(req, res) {
                     const diff = user.resetExpires - now;
                     if (diff > 0) {
                       const passwordHash = await bcrypt.hash(password, 10);
-                      await UserModel.updateOne(
-                        { _id: userId },
-                        {
-                          $set: {
-                            password: passwordHash,
-                            resetToken: null,
-                            resetExpires: null,
-                          },
+                      await UserModel.findByIdAndUpdate(userId, {
+                        $set: {
+                          password: passwordHash,
+                          resetToken: null,
+                          resetExpires: null,
                         },
-                        { new: true }
-                      );
+                      });
                       const mailOptions = createPasswordResetMail(user.email);
                       mailTransporter.sendMail(
                         mailOptions,
@@ -495,7 +636,7 @@ async function accountManagement(req, res) {
           break;
       }
     } else {
-      res.status(400).json({ error: "Token and User id are required" });
+      res.status(400).json({ error: "Token and/or User id are required" });
     }
   } catch (error) {
     console.log(error);
@@ -510,6 +651,7 @@ module.exports = {
   revokeUserAccess,
   getUser,
   updateData,
+  updateFile,
   updateEmail,
   updatePassword,
   deleteUser,

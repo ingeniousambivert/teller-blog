@@ -1,3 +1,5 @@
-import Feed from "./feed";
+import FeedContainer from "./feed";
+import ProfileContainer from "./user";
+import PostsContainer from "./posts";
 
-export { Feed };
+export { FeedContainer, ProfileContainer, PostsContainer };

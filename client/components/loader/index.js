@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 
-const Loader = ({ color, fullHeight }) => {
-    let circleCommonClasses = `h-4 md:w-4 border-4 border-${color} rounded-full`;
+const Loader = ({ color, fullHeight, text }) => {
+    let circleCommonClasses = `h-4 md:w-4 bg-${color} rounded-full`;
     return (
         <div
             className={
@@ -14,18 +14,20 @@ const Loader = ({ color, fullHeight }) => {
                 <div className={`${circleCommonClasses} mr-1 animate-bounce200`}></div>
                 <div className={`${circleCommonClasses} animate-bounce400`}></div>
             </div>
-            <p className={`md:text-lg text-${color}`}>Loading...</p>
+            <p className={`md:text-lg text-${color}`}>{text}</p>
         </div>
     );
 };
 
 Loader.defaultProps = {
     color: "blue-600",
-    fullHeight: true
+    fullHeight: true,
+    text: "Loading..."
 };
 
 Loader.propTypes = {
     color: PropTypes.string,
+    text: PropTypes.string,
     fullHeight: PropTypes.bool
 };
 

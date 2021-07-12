@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Loader, Jumbotron } from "../../components";
+import { Loader } from "../../components";
+import { ProfileContainer } from "../../containers";
 import { PrivateRoute } from "../../routes";
 import { useRecoilState } from "recoil";
 import { userAuth, userData } from "../../state/user";
@@ -12,11 +13,12 @@ function Profile() {
     const [loading, setLoading] = useState(false);
 
     const signOut = async () => {
-        setAuth({});
-        setData({});
+        // auth && (await revokeUserAccess());
+        setAuth(null);
+        setData(null);
         setError(null);
-        await revokeUserAccess();
     };
+
     const getData = async () => {
         setLoading(true);
         const response = await getUser(auth?.id);
@@ -68,11 +70,7 @@ function Profile() {
                 </div>
             ) : (
                 <div className="container mx-auto space-y-2">
-                    <Jumbotron>
-                        <div>
-                            Hello, {data?.firstname}&nbsp;{data?.lastname}
-                        </div>
-                    </Jumbotron>
+                    <ProfileContainer user={data} getData={getData} signOut={signOut} />
                 </div>
             )}
         </PrivateRoute>

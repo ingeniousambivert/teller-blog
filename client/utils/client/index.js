@@ -13,10 +13,12 @@ export const getRefreshToken = () => {
     return refreshToken;
 };
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
+
 const client = {
     get: async function (endpoint, authHeaders = {}) {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}${endpoint}`, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "GET",
                 headers: new Headers(
                     authHeaders ? { ...authHeaders, ...basicHeaders } : basicHeaders
@@ -30,7 +32,7 @@ const client = {
     },
     post: async function (endpoint, body, authHeaders = {}) {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}${endpoint}`, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "POST",
                 headers: new Headers(
                     authHeaders ? { ...authHeaders, ...basicHeaders } : basicHeaders
@@ -45,7 +47,7 @@ const client = {
     },
     put: async function (endpoint, body, authHeaders = {}) {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}${endpoint}`, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "PUT",
                 headers: new Headers({ ...authHeaders, ...basicHeaders }),
                 body: JSON.stringify(body)
@@ -56,12 +58,12 @@ const client = {
             return error;
         }
     },
-    patch: async function (endpoint, body, authHeaders = {}) {
+    patch: async function (endpoint, body, authHeaders = {}, formData = false) {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}${endpoint}`, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "PATCH",
-                headers: new Headers({ ...authHeaders, ...basicHeaders }),
-                body: JSON.stringify(body)
+                headers: new Headers(formData ? authHeaders : { ...authHeaders, ...basicHeaders }),
+                body: formData ? body : JSON.stringify(body)
             });
             return response;
         } catch (error) {
@@ -71,7 +73,7 @@ const client = {
     },
     delete: async function (endpoint, authHeaders = {}) {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_API_URL}${endpoint}`, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: "DELETE",
                 headers: new Headers({ ...authHeaders, ...basicHeaders })
             });

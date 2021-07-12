@@ -72,7 +72,7 @@ function SignInForm(props) {
                                         type="password"
                                         placeholder="Enter your Password"
                                     />
-                                    {errors.email?.type === "required" && (
+                                    {errors.password?.type === "required" && (
                                         <p className="text-xs italic text-red-500">
                                             Please enter your Password.
                                         </p>
@@ -114,7 +114,7 @@ function SignInForm(props) {
                                 <div className="text-center">
                                     <a
                                         className="inline-block text-sm text-blue-600 align-baseline hover:text-blue-500 transition duration-300"
-                                        href="/">
+                                        href="/user/account/forgot">
                                         Forgot Password?
                                     </a>
                                 </div>

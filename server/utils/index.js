@@ -1,7 +1,23 @@
 const mailer = require("nodemailer");
+const { rm, existsSync, mkdirSync } = require("fs");
 const { gmailUsername, gmailPassword } = require("../config");
 
+const deleteDir = (dir) => {
+  rm(dir, { recursive: true }, (err) => {
+    if (err) {
+      throw err;
+    }
+  });
+};
+
+const createDir = (dir) => {
+  if (!existsSync(dir)) {
+    mkdirSync(dir);
+  }
+};
+
 const createVerifyMail = (email, userId, token, url) => {
+  console.log(`Sent verification email to ${email}`);
   const link = `${url}/user/account/verify?userId=${userId}&token=${token}`;
   const mailOptions = {
     from: "no-reply@tellerblog.com",
@@ -13,6 +29,7 @@ const createVerifyMail = (email, userId, token, url) => {
 };
 
 const createForgotPasswordMail = (email, userId, token, url) => {
+  console.log(`Sent forgot password email to ${email}`);
   const link = `${url}/user/account/reset?userId=${userId}&token=${token}`;
   const mailOptions = {
     from: "no-reply@tellerblog.com",
@@ -24,6 +41,7 @@ const createForgotPasswordMail = (email, userId, token, url) => {
 };
 
 const createPasswordResetMail = (email, type = "reset") => {
+  console.log(`Sent password reset email to ${email}`);
   const mailOptions = {
     from: "no-reply@tellerblog.com",
     to: email,
@@ -49,6 +67,8 @@ const getIncrementDate = (increment) => {
 };
 
 module.exports = {
+  deleteDir,
+  createDir,
   createVerifyMail,
   createForgotPasswordMail,
   createPasswordResetMail,
