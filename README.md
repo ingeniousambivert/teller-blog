@@ -1,6 +1,6 @@
 # Teller Blog
 
-A minimal blogging platform
+> A minimal blogging platform with 
 
 
 ## Built with
@@ -24,15 +24,11 @@ A minimal blogging platform
 ## Todo
 
 - [X]  Recoil for State Management
-- [X]  Authentication/User Management in the server
-- [ ]  User Dashboard - Profile, Posts, Drafts, Saved
-- [ ]  Role Management/Permissions in the server
+- [ ]  Move to Strapi
 - [ ]  Admin Dashboard with user stats and control
 - [ ]  Add likes, reads, views to posts
-- [ ]  Read restrictions for unlogged/guest users
+- [ ]  Read restrictions for guest users
 - [ ]  Popular and Recent Post segregation in Feed
-- [ ]  Move to PostgreSQL
-- [ ]  Move to FeathersJS in the server 
 - [ ]  Move to `tags` with many to many relations 
 
 
