@@ -14,7 +14,7 @@ const Meta = ({ title, keywords, description }) => {
 };
 
 Meta.defaultProps = {
-    title: "TELLER Blog",
+    title: "Teller Blog",
     keywords: "blog, blogger, blogs, blogging",
     description: "Blogging site"
 };
