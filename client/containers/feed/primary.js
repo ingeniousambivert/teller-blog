@@ -13,7 +13,7 @@ function PrimaryPosts({ articles }) {
         primaryAuthorImageUrl = getStrapiMedia(primaryArticle.author.picture);
     }
     let secondaryArticles;
-    if (articles > 1) {
+    if (articles.length > 1) {
         secondaryArticles = articles.slice(1, articles.length);
     }
     return (
