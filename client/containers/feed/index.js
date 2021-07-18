@@ -13,7 +13,7 @@ function FeedContainer() {
             <div className="container">
                 <div className="space-y-5">
                     <PrimaryPosts articles={primaryArticles} />
-                    <SecondaryPosts articles={secondaryArticles} />
+                    {articles.length > 3 && <SecondaryPosts articles={secondaryArticles} />}
                 </div>
             </div>
         )
