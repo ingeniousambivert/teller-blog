@@ -1,6 +1,6 @@
 # Teller Blog
 
-> A minimal blogging platform with 
+> A minimal blog
 
 
 ## Built with
