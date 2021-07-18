@@ -1,13 +1,22 @@
 import PropTypes from "prop-types";
 import ReactMarkdown from "react-markdown";
+import { Meta } from "../../../layouts";
 import { getStrapiData, getStrapiMedia } from "../../../utils/client";
 
 export default function Article({ article }) {
     const coverImageUrl = getStrapiMedia(article.image);
     const authorImageUrl = getStrapiMedia(article.author.picture);
+
+    const seo = {
+        metaTitle: article.title,
+        metaDescription: article.description,
+        shareImage: article.image,
+        article: true
+    };
     return (
-        <div>
-            <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-4xl col-span-2">
+        <div className="mb-10">
+            <Meta seo={seo} />
+            <div className="max-w-md mx-auto bg-white rounded-t-xl overflow-hidden md:max-w-4xl col-span-2">
                 <div className="flex flex-col">
                     <div>
                         <img

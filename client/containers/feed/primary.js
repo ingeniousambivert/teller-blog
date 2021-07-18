@@ -31,7 +31,7 @@ function PrimaryPosts({ articles }) {
                                     <div className="uppercase tracking-wide text-sm text-blue-500 font-semibold">
                                         {primaryArticle.category.name}
                                     </div>
-                                    <Link href={`article/${primaryArticle.slug}`}>
+                                    <Link href={`/article/${primaryArticle.slug}`}>
                                         <p className="block mt-1 text-md leading-tight font-medium text-black hover:underline cursor-pointer">
                                             {primaryArticle.title}
                                         </p>
@@ -83,7 +83,7 @@ function PrimaryPosts({ articles }) {
                                                 <div className="uppercase tracking-wide text-sm text-blue-500 font-semibold">
                                                     {secondaryArticle.category.name}
                                                 </div>
-                                                <Link href={`article/${secondaryArticle.slug}`}>
+                                                <Link href={`/article/${secondaryArticle.slug}`}>
                                                     <p className="block mt-1 text-md leading-tight font-medium text-black hover:underline cursor-pointer">
                                                         {secondaryArticle.title}
                                                     </p>

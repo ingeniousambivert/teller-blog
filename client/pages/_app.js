@@ -1,10 +1,12 @@
+import App from "next/app";
 import React from "react";
 import "tailwindcss/tailwind.css";
 import { QueryClient, QueryClientProvider } from "react-query";
 import PropTypes from "prop-types";
-import { RecoilRoot } from "recoil";
-
+import { RecoilRoot, useSetRecoilState } from "recoil";
+import { seoState } from "../state/feed";
 import { Layout } from "../layouts";
+import { getStrapiData } from "../utils/client";
 
 const queryClient = new QueryClient();
 class ErrorBoundary extends React.Component {
@@ -40,19 +42,35 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
-function App({ Component, pageProps }) {
+
+function MainComponent({ Component, props }) {
+    const { global } = props;
+    const setSeoState = useSetRecoilState(seoState);
+    setSeoState(global);
+    return <Component {...props} />;
+}
+function NextApp({ Component, pageProps }) {
     return (
         <ErrorBoundary>
             <RecoilRoot>
                 <QueryClientProvider client={queryClient}>
                     <Layout>
-                        <Component {...pageProps} />
+                        <MainComponent Component={Component} props={pageProps} />
                     </Layout>
                 </QueryClientProvider>
             </RecoilRoot>
         </ErrorBoundary>
     );
 }
+
+NextApp.getInitialProps = async (ctx) => {
+    // Calls page's `getInitialProps` and fills `appProps.pageProps`
+    const appProps = await App.getInitialProps(ctx);
+    // Fetch global site settings from Strapi
+    const global = await getStrapiData("/global");
+    // Pass the data to our page via props
+    return { ...appProps, pageProps: { global } };
+};
 
 ErrorBoundary.propTypes = {
     children: PropTypes.oneOfType([
@@ -61,9 +79,16 @@ ErrorBoundary.propTypes = {
         PropTypes.object
     ]).isRequired
 };
-App.propTypes = {
+
+MainComponent.propTypes = {
+    Component: PropTypes.any.isRequired,
+    props: PropTypes.object,
+    global: PropTypes.object
+};
+
+NextApp.propTypes = {
     Component: PropTypes.any.isRequired,
     pageProps: PropTypes.object
 };
 
-export default App;
+export default NextApp;

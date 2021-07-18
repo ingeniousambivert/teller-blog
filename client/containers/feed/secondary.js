@@ -25,7 +25,7 @@ function SecondaryPosts({ articles }) {
                                     <div className="uppercase tracking-wide text-sm text-blue-500 font-semibold">
                                         {article.category.name}
                                     </div>
-                                    <Link href={`article/${article.slug}`}>
+                                    <Link href={`/article/${article.slug}`}>
                                         <p className="block mt-1 text-md leading-tight font-medium text-black hover:underline cursor-pointer">
                                             {article.title}
                                         </p>
