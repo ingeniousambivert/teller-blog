@@ -20,7 +20,6 @@ const Meta = ({ seo }) => {
             shareImage: getStrapiMedia(seoWithDefaults.shareImage)
         };
     }
-    console.log(fullSeo);
 
     return (
         <Head>

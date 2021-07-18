@@ -4,15 +4,15 @@ import PropTypes from "prop-types";
 import { Meta } from "../../../layouts";
 import { FeedContainer } from "../../../containers";
 import { getStrapiData } from "../../../utils/client";
-import { articlesState, categoriesState, filterState } from "../../../state/feed";
+import { articlesState, filterState } from "../../../state/feed";
 
-export default function CategoryArticles({ articles, categories, category }) {
+export default function CategoryArticles({ articles, category }) {
     const [filter, setFilter] = useRecoilState(filterState);
     const setArticlesState = useSetRecoilState(articlesState);
-    const setCategoriesState = useSetRecoilState(categoriesState);
+
     setFilter(category);
     setArticlesState(articles);
-    setCategoriesState([{ id: 1, name: "All", slug: "all" }, ...categories]);
+
     const seo = {
         metaTitle: category.charAt(0).toUpperCase() + category.slice(1),
         metaDescription: `All ${category} articles`
@@ -39,13 +39,10 @@ export default function CategoryArticles({ articles, categories, category }) {
 
 export async function getStaticProps(context) {
     const category = context.params.slug;
-    const [articles, categories] = await Promise.all([
-        getStrapiData(`/articles/?_where[0][category.slug]=${category}`),
-        getStrapiData("/categories")
-    ]);
+    const articles = await getStrapiData(`/articles/?_where[0][category.slug]=${category}`);
 
     return {
-        props: { articles, categories, category },
+        props: { articles, category },
         revalidate: 1
     };
 }
@@ -64,8 +61,6 @@ export const getStaticPaths = async () => {
 
 CategoryArticles.propTypes = {
     articles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object])
-        .isRequired,
-    categories: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object])
         .isRequired,
     category: PropTypes.string.isRequired
 };

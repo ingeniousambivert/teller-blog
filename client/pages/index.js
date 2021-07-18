@@ -4,14 +4,11 @@ import PropTypes from "prop-types";
 import { Meta } from "../layouts";
 import { FeedContainer } from "../containers";
 import { getStrapiData } from "../utils/client";
-import { articlesState, categoriesState } from "../state/feed";
+import { articlesState } from "../state/feed";
 
-export default function Index({ articles, categories, homepage }) {
+export default function Index({ articles, homepage }) {
     const setArticlesState = useSetRecoilState(articlesState);
-    const setCategoriesState = useSetRecoilState(categoriesState);
-
     setArticlesState(articles);
-    setCategoriesState([{ id: 1, name: "All", slug: "all" }, ...categories]);
 
     return (
         <div>
@@ -33,22 +30,19 @@ export default function Index({ articles, categories, homepage }) {
 }
 
 export async function getStaticProps() {
-    const [articles, categories, homepage] = await Promise.all([
+    const [articles, homepage] = await Promise.all([
         getStrapiData("/articles"),
-        getStrapiData("/categories"),
         getStrapiData("/homepage")
     ]);
 
     return {
-        props: { articles, categories, homepage },
+        props: { articles, homepage },
         revalidate: 1
     };
 }
 
 Index.propTypes = {
     articles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object])
-        .isRequired,
-    categories: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object])
         .isRequired,
     homepage: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object])
         .isRequired
