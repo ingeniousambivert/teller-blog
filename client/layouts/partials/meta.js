@@ -1,27 +1,57 @@
+import { Fragment } from "react";
 import Head from "next/head";
+import { useRecoilValue } from "recoil";
 import PropTypes from "prop-types";
-const Meta = ({ title, keywords, description }) => {
+import { seoState } from "../../state/feed";
+import { getStrapiMedia } from "../../utils/client";
+
+const Meta = ({ seo }) => {
+    const globalSeo = useRecoilValue(seoState);
+    let fullSeo = {};
+    if (globalSeo) {
+        const { defaultSeo, siteName } = globalSeo;
+        const seoWithDefaults = {
+            ...defaultSeo,
+            ...seo
+        };
+        fullSeo = {
+            ...seoWithDefaults,
+            metaTitle: `${seoWithDefaults.metaTitle} | ${siteName}`,
+            shareImage: getStrapiMedia(seoWithDefaults.shareImage)
+        };
+    }
+
     return (
         <Head>
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <meta name="keywords" content={keywords} />
-            <meta name="description" content={description} />
-            <meta charSet="utf-8" />
-            <link rel="shortcut icon" href="/favicon.ico" />
-            <title>{title}</title>
+            {fullSeo.metaTitle && (
+                <Fragment>
+                    <title>{fullSeo.metaTitle}</title>
+                    <meta property="og:title" content={fullSeo.metaTitle} />
+                    <meta name="twitter:title" content={fullSeo.metaTitle} />
+                </Fragment>
+            )}
+            {fullSeo.metaDescription && (
+                <Fragment>
+                    <meta name="description" content={fullSeo.metaDescription} />
+                    <meta property="og:description" content={fullSeo.metaDescription} />
+                    <meta name="twitter:description" content={fullSeo.metaDescription} />
+                </Fragment>
+            )}
+            {fullSeo.shareImage && (
+                <Fragment>
+                    <meta property="og:image" content={fullSeo.shareImage} />
+                    <meta name="twitter:image" content={fullSeo.shareImage} />
+                    <meta name="image" content={fullSeo.shareImage} />
+                </Fragment>
+            )}
+            {fullSeo.article && <meta property="og:type" content="article" />}
+            <meta name="twitter:card" content="summary_large_image" />
         </Head>
     );
 };
 
-Meta.defaultProps = {
-    title: "TELLER Blog",
-    keywords: "blog, blogger, blogs, blogging",
-    description: "Blogging site"
-};
 Meta.propTypes = {
-    title: PropTypes.string,
-    keywords: PropTypes.string,
-    description: PropTypes.string
+    seo: PropTypes.object
 };
 
 export default Meta;
