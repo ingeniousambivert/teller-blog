@@ -25,10 +25,6 @@
 
 - [X]  Recoil for State Management
 - [X]  Move to Strapi for backend
-- [ ]  Admin Dashboard with user stats and control
-- [ ]  Add likes, reads, views to posts
-- [ ]  Read restrictions for guest users
-- [ ]  Popular and Recent Post segregation in Feed
 - [ ]  Move to `tags` with many to many relations 
 
 
