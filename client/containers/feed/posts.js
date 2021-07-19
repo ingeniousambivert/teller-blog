@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import ReactMarkdown from "react-markdown";
 import { getStrapiMedia } from "../../utils/client";
 
-function SecondaryPosts({ articles }) {
+function Posts({ articles }) {
     return (
         <div className="grid grid-flow-row grid-cols-1 lg:grid-cols-4 gap-4">
             {articles.map((article) => {
@@ -61,8 +61,8 @@ function SecondaryPosts({ articles }) {
     );
 }
 
-SecondaryPosts.propTypes = {
+Posts.propTypes = {
     articles: PropTypes.array.isRequired
 };
 
-export default SecondaryPosts;
+export default Posts;
